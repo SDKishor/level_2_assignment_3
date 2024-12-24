@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import UserModel from '../auth/user.model';
 import { IUser } from '../auth/user.interface';
+import BlogModel from '../blog/blog.model';
 
 const blockUser = async (id: string, data: Partial<IUser>) => {
   // check if data contains isblocked property
@@ -33,7 +34,7 @@ const blockUser = async (id: string, data: Partial<IUser>) => {
 };
 
 const deleteBlog = async (id: string) => {
-  const result = await UserModel.findOneAndDelete({ _id: id });
+  const result = await BlogModel.findOneAndDelete({ _id: id });
 
   return result;
 };
