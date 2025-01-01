@@ -19,7 +19,7 @@ const createUser = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
     success: true,
-    message: 'user created successfully',
+    message: 'user registered successfully',
     data: result,
   });
 });
@@ -37,7 +37,7 @@ const loginUser = catchAsync(async (req, res) => {
     statusCode: StatusCodes.OK,
     success: true,
     message: 'user logged in successfully',
-    data: { accessToken },
+    data: { token: accessToken },
   });
 });
 

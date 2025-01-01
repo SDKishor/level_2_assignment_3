@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { IBlog } from './blog.interface';
 import BlogModel from './blog.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import UserModel from '../auth/user.model';
 
 const createBlog = async (blog: IBlog) => {
   const newblog = await BlogModel.create([blog]);
@@ -12,7 +13,18 @@ const createBlog = async (blog: IBlog) => {
     throw new AppError('Failed to create blog', StatusCodes.BAD_REQUEST);
   }
 
-  return newblog;
+  const author = await UserModel.findById(newblog[0].author).select(
+    '_id name email',
+  );
+
+  const result = {
+    _id: newblog[0]._id,
+    title: newblog[0].title,
+    content: newblog[0].content,
+    author: author,
+  };
+
+  return result;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,10 +34,9 @@ const getAllBlogs = async (query: any) => {
   const result = await blogQuery
     .search(['title', 'content'])
     .filter()
-    .sort()
-    .paginate()
-    .limitFields()
-    .modelQuery.exec();
+    .sortBy()
+    .fields(['_id', 'title', 'content', 'author'])
+    .modelQuery.populate('author', '_id name email');
 
   return result;
 };
@@ -33,7 +44,9 @@ const getAllBlogs = async (query: any) => {
 const updateBlog = async (id: string, blog: Partial<IBlog>) => {
   const result = await BlogModel.findOneAndUpdate({ _id: id }, blog, {
     new: true,
-  });
+  })
+    .select('_id title content author')
+    .populate('author', '_id name email');
 
   return result;
 };

@@ -4,12 +4,13 @@ class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
   public query: Record<string, unknown>;
   private allowedFields = [
-    'searchTerm',
-    'sort',
+    'search',
+    'sortBy',
     'page',
     'limit',
     'fields',
     'id',
+    'sortOrder',
   ];
 
   constructor(
@@ -62,15 +63,14 @@ class QueryBuilder<T> {
   }
 
   search(searchableFields: string[]) {
-    const searchTerm = this.query.searchTerm as string;
-    if (searchTerm && searchableFields.length > 0) {
+    const search = this.query.search as string;
+    if (search && searchableFields.length > 0) {
       this.modelQuery = this.modelQuery.find({
         $or: searchableFields.map((field) => ({
-          [field]: { $regex: searchTerm, $options: 'i' },
+          [field]: { $regex: search, $options: 'i' },
         })),
       });
     }
-
     return this;
   }
 
@@ -79,7 +79,14 @@ class QueryBuilder<T> {
     const queryObj = { ...sanitizedQuery }; // copy
 
     // Filtering
-    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+    const excludeFields = [
+      'search',
+      'sortBy',
+      'limit',
+      'page',
+      'fields',
+      'sortOrder',
+    ];
 
     excludeFields.forEach((el) => delete queryObj[el]);
 
@@ -88,28 +95,16 @@ class QueryBuilder<T> {
     return this;
   }
 
-  sort(defaultSort = '-createdAt') {
-    const sort =
-      (this?.query?.sort as string)?.split(',')?.join(' ') || defaultSort;
-    this.modelQuery = this.modelQuery.sort(sort as string);
+  sortBy(defaultSort = 'createdAt') {
+    const sortByField =
+      (this?.query?.sortBy as string)?.split(',')?.join(' ') || defaultSort;
+    const sortOrder = this.query.sortOrder === 'desc' ? '-' : '';
+    this.modelQuery = this.modelQuery.sort(`${sortOrder}${sortByField}`);
 
     return this;
   }
 
-  paginate(defaultPage = 1, defaultLimit = 10) {
-    const page = Number(this?.query?.page) || defaultPage;
-    const limit = Number(this?.query?.limit) || defaultLimit;
-    const skip = (page - 1) * limit;
-
-    this.modelQuery = this.modelQuery.skip(skip).limit(limit);
-
-    return this;
-  }
-
-  limitFields(defaultFields = '-__v') {
-    const fields =
-      (this?.query?.fields as string)?.split(',')?.join(' ') || defaultFields;
-
+  fields(fields: string[]) {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }

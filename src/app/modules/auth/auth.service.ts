@@ -12,7 +12,12 @@ const createUser = async (user: IUser) => {
   if (!newUser.length) {
     throw new AppError('Failed to create student', StatusCodes.BAD_REQUEST);
   }
-  return newUser;
+  const result = {
+    _id: newUser[0]._id,
+    name: newUser[0].name,
+    email: newUser[0].email,
+  };
+  return result;
 };
 
 const loginUser = async (email: string, password: string) => {
@@ -25,7 +30,7 @@ const loginUser = async (email: string, password: string) => {
   const isPasswordMatched = await bcrypt.compare(password, user.password);
 
   if (!isPasswordMatched) {
-    throw new AppError('Invalid password', StatusCodes.UNAUTHORIZED);
+    throw new AppError('Invalid credentials', StatusCodes.UNAUTHORIZED);
   }
 
   //create token
